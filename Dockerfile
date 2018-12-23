@@ -44,6 +44,13 @@ RUN apt-get -y update && \
  curl -sL https://deb.nodesource.com/setup_8.x | bash - && \
  apt-get install -y nodejs
 
+
+# Set Infludb data folder as a volume
+VOLUME /var/lib/influxdb
+
+# Set Mysql data folder as a volume
+VOLUME /var/lib/mysql
+
 # Configure Supervisord, SSH and base env
 COPY supervisord/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
