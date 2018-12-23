@@ -40,10 +40,17 @@ RUN apt-get -y update && \
   net-tools \
   openssh-server \
   supervisor \
+  mosquitto mosquitto-clients \
   wget && \
  curl -sL https://deb.nodesource.com/setup_8.x | bash - && \
  apt-get install -y nodejs
 
+RUN mkdir -p /mqtt/config /mqtt/data /mqtt/log
+COPY mosquitto /mqtt/config
+RUN chown -R mosquitto:mosquitto /mqtt
+VOLUME ["/mqtt/config", "/mqtt/data", "/mqtt/log"]
+
+EXPOSE 1883 9001
 
 # Set Infludb data folder as a volume
 VOLUME /var/lib/influxdb
