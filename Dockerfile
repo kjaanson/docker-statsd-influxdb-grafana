@@ -112,4 +112,6 @@ COPY grafana/grafana.ini /etc/grafana/grafana.ini
 RUN apt-get clean && \
  rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+EXPOSE 3003 8888 8086 8125 22
+
 CMD ["/usr/bin/supervisord"]
