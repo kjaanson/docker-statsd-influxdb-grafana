@@ -45,18 +45,35 @@ RUN apt-get -y update && \
  curl -sL https://deb.nodesource.com/setup_8.x | bash - && \
  apt-get install -y nodejs
 
+# Install InfluxDB
+RUN wget https://dl.influxdata.com/influxdb/releases/influxdb_${INFLUXDB_VERSION}_amd64.deb && \
+	dpkg -i influxdb_${INFLUXDB_VERSION}_amd64.deb && rm influxdb_${INFLUXDB_VERSION}_amd64.deb
+
+# Install Telegraf
+RUN wget https://dl.influxdata.com/telegraf/releases/telegraf_${TELEGRAF_VERSION}_amd64.deb && \
+	dpkg -i telegraf_${TELEGRAF_VERSION}_amd64.deb && rm telegraf_${TELEGRAF_VERSION}_amd64.deb
+
+# Install chronograf
+RUN wget https://dl.influxdata.com/chronograf/releases/chronograf_${CHRONOGRAF_VERSION}_amd64.deb && \
+  dpkg -i chronograf_${CHRONOGRAF_VERSION}_amd64.deb
+
+# Install Grafana
+RUN wget https://s3-us-west-2.amazonaws.com/grafana-releases/release/grafana_${GRAFANA_VERSION}_amd64.deb && \
+	dpkg -i grafana_${GRAFANA_VERSION}_amd64.deb && rm grafana_${GRAFANA_VERSION}_amd64.deb
+
+# Cleanup
+RUN apt-get clean && \
+ rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+
+# Configure Mosquitto
 RUN mkdir -p /mqtt/config /mqtt/data /mqtt/log
 COPY mosquitto /mqtt/config
 RUN chown -R mosquitto:mosquitto /mqtt
 VOLUME ["/mqtt/config", "/mqtt/data", "/mqtt/log"]
 
-EXPOSE 1883 9001
 
-# Set Infludb data folder as a volume
-VOLUME /var/lib/influxdb
 
-# Set Mysql data folder as a volume
-VOLUME /var/lib/mysql
 
 # Configure Supervisord, SSH and base env
 COPY supervisord/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
@@ -76,42 +93,26 @@ COPY bash/profile .profile
 
 # Configure MySql
 COPY scripts/setup_mysql.sh /tmp/setup_mysql.sh
-
 RUN /tmp/setup_mysql.sh
-
-# Install InfluxDB
-RUN wget https://dl.influxdata.com/influxdb/releases/influxdb_${INFLUXDB_VERSION}_amd64.deb && \
-	dpkg -i influxdb_${INFLUXDB_VERSION}_amd64.deb && rm influxdb_${INFLUXDB_VERSION}_amd64.deb
+# Set Mysql data folder as a volume
+VOLUME /var/lib/mysql
 
 # Configure InfluxDB
 COPY influxdb/influxdb.conf /etc/influxdb/influxdb.conf
 COPY influxdb/init.sh /etc/init.d/influxdb
-
-# Install Telegraf
-RUN wget https://dl.influxdata.com/telegraf/releases/telegraf_${TELEGRAF_VERSION}_amd64.deb && \
-	dpkg -i telegraf_${TELEGRAF_VERSION}_amd64.deb && rm telegraf_${TELEGRAF_VERSION}_amd64.deb
+# Set Infludb data folder as a volume
+VOLUME /var/lib/influxdb
 
 # Configure Telegraf
 COPY telegraf/telegraf.conf /etc/telegraf/telegraf.conf
 COPY telegraf/init.sh /etc/init.d/telegraf
-
-# Install chronograf
-RUN wget https://dl.influxdata.com/chronograf/releases/chronograf_${CHRONOGRAF_VERSION}_amd64.deb && \
-  dpkg -i chronograf_${CHRONOGRAF_VERSION}_amd64.deb
-
-# Install Grafana
-RUN wget https://s3-us-west-2.amazonaws.com/grafana-releases/release/grafana_${GRAFANA_VERSION}_amd64.deb && \
-	dpkg -i grafana_${GRAFANA_VERSION}_amd64.deb && rm grafana_${GRAFANA_VERSION}_amd64.deb
 
 # Configure Grafana with provisioning
 ADD grafana/provisioning /etc/grafana/provisioning
 ADD grafana/dashboards /var/lib/grafana/dashboards
 COPY grafana/grafana.ini /etc/grafana/grafana.ini
 
-# Cleanup
-RUN apt-get clean && \
- rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-EXPOSE 3003 8888 8086 8125 22
+EXPOSE 1883 9001 3003 8888 8086 8125 22
 
 CMD ["/usr/bin/supervisord"]
