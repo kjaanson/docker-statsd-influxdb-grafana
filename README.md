@@ -1,8 +1,13 @@
-# Docker Image with Telegraf (StatsD), InfluxDB and Grafana
+# Docker Image with Telegraf (StatsD), InfluxDB, Grafana and Mosquitto
 
-:facepunch: Battle-tested
+Forked from https://github.com/samuelebistoletti/docker-statsd-influxdb-grafana
 
-[![CircleCI](https://circleci.com/gh/samuelebistoletti/docker-statsd-influxdb-grafana.svg?style=svg)](https://circleci.com/gh/samuelebistoletti/docker-statsd-influxdb-grafana)
+Major changes from the original
+
+Changes from original
+  * Changed Dockerfile to do the heavylifting (package download and install) at the beginning and include configs at the end
+  * Made volumes of data folders of different services
+  * Changed supervisord config to run processes directly as foreground processes in some cases.
 
 ## Versions
 
@@ -19,15 +24,7 @@
 To start the container the first time launch:
 
 ```sh
-docker run --ulimit nofile=66000:66000 \
-  -d \
-  --name docker-statsd-influxdb-grafana \
-  -p 3003:3003 \
-  -p 3004:8888 \
-  -p 8086:8086 \
-  -p 22022:22 \
-  -p 8125:8125/udp \
-  samuelebistoletti/docker-statsd-influxdb-grafana:latest
+sh docker-run.sh
 ```
 
 You can replace `latest` with the desired version listed in changelog file.
@@ -44,11 +41,12 @@ To start the container again launch:
 docker start docker-statsd-influxdb-grafana
 ```
 
-## Mapped Ports
+### Mapped ports
 
 ```
 Host		Container		Service
 
+1883    1883      mosquitto
 3003		3003			grafana
 3004		8888			influxdb-admin (chronograf)
 8086		8086			influxdb
